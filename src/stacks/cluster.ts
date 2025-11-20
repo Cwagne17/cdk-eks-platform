@@ -1,10 +1,47 @@
-import { Stack, StackProps } from "aws-cdk-lib";
-import { Construct } from "constructs/lib/construct";
+import { Stack, StackProps } from 'aws-cdk-lib';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import { TaintEffect } from 'aws-cdk-lib/aws-eks';
+import { Construct } from 'constructs';
+import { EKS_OPTIMIZED_AL2023_AMI_PATTERN, EKS_VERSION } from '../constants';
+import { EksPlatform } from '../constructs/eks';
+
+export interface ClusterStackProps extends StackProps {
+  readonly vpc?: ec2.IVpc;
+}
 
 export class ClusterStack extends Stack {
-    constructor(scope: Construct, id: string, props?: StackProps) {
-        super(scope, id, props);
+  public readonly cluster: EksPlatform;
 
-        // Define EKS Cluster resources here
-    }
+  constructor(scope: Construct, id: string, props?: ClusterStackProps) {
+    super(scope, id, props);
+
+    // Get or create VPC
+    const vpc = props?.vpc || ec2.Vpc.fromLookup(this, 'DefaultVpc', {
+      isDefault: true,
+    });
+
+    // Create EKS Platform with example configuration
+    this.cluster = new EksPlatform(this, 'EksPlatform', {
+      name: 'example-cluster',
+      vpc: vpc,
+      subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
+      version: EKS_VERSION,
+      nodeGroups: [
+        {
+          name: 'windows',
+          machineImage: ec2.MachineImage.lookup({
+            name: EKS_OPTIMIZED_AL2023_AMI_PATTERN,
+          }),
+          taints: [{ key: 'os', value: 'windows', effect: TaintEffect.NO_SCHEDULE }],
+          enableDomainJoin: true,
+        },
+        {
+          name: 'al2023',
+          machineImage: ec2.MachineImage.lookup({
+            name: EKS_OPTIMIZED_AL2023_AMI_PATTERN,
+          }),
+        }
+      ],
+    });
+  }
 }

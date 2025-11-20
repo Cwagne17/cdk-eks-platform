@@ -4,7 +4,7 @@ import { ExampleStage } from './stages/example';
 
 const env = {
   account: AWS_ACCOUNT_ID,
-  region: AWS_REGION
+  region: AWS_REGION,
 };
 
 const app = new App();
