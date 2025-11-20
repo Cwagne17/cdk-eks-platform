@@ -2,8 +2,8 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { TaintEffect } from 'aws-cdk-lib/aws-eks';
 import { Construct } from 'constructs';
-import { EKS_OPTIMIZED_AL2023_AMI_PATTERN, EKS_VERSION } from '../constants';
-import { EksPlatform } from '../constructs/eks';
+import { EKS_OPTIMIZED_AL2023_AMI_PATTERN } from '../constants';
+import { EksPlatform } from '../constructs/eksv2';
 
 export interface ClusterStackProps extends StackProps {
   readonly vpc?: ec2.IVpc;
@@ -22,21 +22,18 @@ export class ClusterStack extends Stack {
 
     // Create EKS Platform with example configuration
     this.cluster = new EksPlatform(this, 'EksPlatform', {
-      name: 'example-cluster',
+      clusterName: 'ex-eks-managed-node-group',
       vpc: vpc,
-      subnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      version: EKS_VERSION,
-      nodeGroups: [
+      managedNodeGroups: [
         {
-          name: 'windows',
+          id: 'windows',
           machineImage: ec2.MachineImage.lookup({
             name: EKS_OPTIMIZED_AL2023_AMI_PATTERN,
           }),
           taints: [{ key: 'os', value: 'windows', effect: TaintEffect.NO_SCHEDULE }],
-          enableDomainJoin: true,
         },
         {
-          name: 'al2023',
+          id: 'al2023',
           machineImage: ec2.MachineImage.lookup({
             name: EKS_OPTIMIZED_AL2023_AMI_PATTERN,
           }),

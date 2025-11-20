@@ -1,0 +1,14 @@
+{
+  "availability-zones:account=008971673260:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ],
+  "ami:account=008971673260:filters.image-type.0=machine:filters.name.0=amazon-eks-node-al2023-x86_64-standard-1.33*:filters.state.0=available:region=us-east-1": "ami-0806912c643175873",
+  "acknowledged-issue-numbers": [
+    34892
+  ]
+}
