@@ -9,7 +9,7 @@
  * 
  */
 
-import { Addon, AddonProps, Cluster, ClusterProps, DefaultCapacityType, ICluster, Nodegroup } from "@aws-cdk/aws-eks-v2-alpha";
+import { Addon, AddonProps, Cluster, ClusterProps, DefaultCapacityType, Nodegroup } from "@aws-cdk/aws-eks-v2-alpha";
 import { KubectlV33Layer } from "@aws-cdk/lambda-layer-kubectl-v33";
 import { KubectlV34Layer } from "@aws-cdk/lambda-layer-kubectl-v34";
 import { Duration, Tags } from "aws-cdk-lib";
@@ -145,7 +145,7 @@ export interface EksPlatformProps extends Pick<ClusterProps, "clusterName" | "vp
 }
 
 export class EksPlatform extends Construct {
-  readonly cluster: ICluster;
+  readonly cluster: Cluster;
   readonly version: KubernetesVersion;
   readonly nodeGroups: Nodegroup[] = [];
 
@@ -158,7 +158,7 @@ export class EksPlatform extends Construct {
     const clusterLogging = [ClusterLoggingTypes.API, ClusterLoggingTypes.AUDIT, ClusterLoggingTypes.AUTHENTICATOR, ClusterLoggingTypes.CONTROLLER_MANAGER, ClusterLoggingTypes.SCHEDULER];
 
     const endpointAccess = EndpointAccess.PRIVATE;
-    const vpcSubnets = props.vpcSubnets ?? { subnetType: SubnetType.PRIVATE_WITH_EGRESS };
+    const vpcSubnets = props.vpcSubnets ?? [{ subnetType: SubnetType.PRIVATE_WITH_EGRESS }];
     const mastersRole = props.mastersRole ?? new Role(this, `${clusterName}-AccessRole`, {
       assumedBy: new AccountRootPrincipal(),
     });
@@ -192,8 +192,8 @@ export class EksPlatform extends Construct {
 
     const clusterOptions = { ...defaultOptions, ...props };
 
-    const cluster = new Cluster(this, id, clusterOptions);
-    cluster.node.addDependency(props.vpc);
+    this.cluster = new Cluster(this, id, clusterOptions);
+    this.cluster.node.addDependency(props.vpc);
 
     let hasWindowsNodes = false;
     for (const n of props.managedNodeGroups ?? []) {
@@ -201,12 +201,12 @@ export class EksPlatform extends Construct {
         hasWindowsNodes = true;
       }
 
-      const nodeGroup = this.addManagedNodeGroup(cluster, n, props.directory);
+      const nodeGroup = this.addManagedNodeGroup(this.cluster, n, props.directory);
       this.nodeGroups.push(nodeGroup);
     }
 
     // Add CoreAddons like VPC CNI, CoreDNS, KubeProxy, EksPodIdentityAgent, etc...
-    this.addCoreAddons(hasWindowsNodes);
+    this.addCoreAddons(this.cluster, hasWindowsNodes);
 
     // TODO: Add HelmAddOns like ClusterAutoScaler, AWS LBC, External Secrets, ArgoCD, etc...
     // this.addHelmAddOns();
@@ -319,7 +319,7 @@ export class EksPlatform extends Construct {
     return ng;
   }
 
-  private addEksInterfaceEndpoint(vpc: IVpc, subnets: SubnetSelection) {
+  private addEksInterfaceEndpoint(vpc: IVpc, subnets: SubnetSelection[]) {
     const endpointSecurityGroup = new SecurityGroup(this, 'EksEndpointSG', {
       vpc,
       description: 'Security group for EKS interface endpoint',
@@ -338,7 +338,7 @@ export class EksPlatform extends Construct {
       service: InterfaceVpcEndpointAwsService.EKS_AUTH,
       securityGroups: [endpointSecurityGroup],
       vpc,
-      subnets,
+      subnets: subnets.length > 0 ? subnets[0] : { subnetType: SubnetType.PRIVATE_WITH_EGRESS },
       privateDnsEnabled: true,
     });
   }
@@ -427,7 +427,7 @@ export class EksPlatform extends Construct {
    * Installs EKS managed add-ons
    * @param hasWindowsNodes determines if the cluster has Windows nodes 
    */
-  private addCoreAddons(hasWindowsNodes: boolean): void {
+  private addCoreAddons(cluster: Cluster, hasWindowsNodes: boolean): void {
     // Core add-ons with their default timing preferences
     const coreAddons: AddonConfig[] = [
       {
@@ -454,7 +454,7 @@ export class EksPlatform extends Construct {
 
     // Install all add-ons with conditional node group dependencies
     for (const config of coreAddons) {
-      const addon = new Addon(this, `${config.addonName}Addon`, { ...config, cluster: this.cluster });
+      const addon = new Addon(this, `${config.addonName}Addon`, { ...config, cluster });
 
       // Add dependency on all node groups if beforeCompute is not true (default behavior)
       if (config.beforeCompute !== true) {

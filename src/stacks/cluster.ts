@@ -3,7 +3,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { TaintEffect } from 'aws-cdk-lib/aws-eks';
 import { Construct } from 'constructs';
 import { EKS_OPTIMIZED_AL2023_AMI_PATTERN } from '../constants';
-import { EksPlatform } from '../constructs/eksv2';
+import { EksPlatform } from '../constructs/eks';
 
 export interface ClusterStackProps extends StackProps {
   readonly vpc?: ec2.IVpc;

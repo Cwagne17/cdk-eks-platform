@@ -1,5 +1,7 @@
-import { Stack, StackProps } from 'aws-cdk-lib';
-import { IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { FlowLogDestination, IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
 export class VpcStack extends Stack {
@@ -17,6 +19,7 @@ export class VpcStack extends Stack {
           name: 'ingress',
           subnetType: SubnetType.PUBLIC,
           cidrMask: 24,
+          mapPublicIpOnLaunch: false,
         },
         {
           name: 'private',
@@ -29,6 +32,36 @@ export class VpcStack extends Stack {
           cidrMask: 28,
         },
       ],
+      restrictDefaultSecurityGroup: true,
+    });
+
+    const vpcFlowLogsRole = new Role(this, 'VpcFlowLogsRole', {
+      assumedBy: new ServicePrincipal('vpc-flow-logs.amazonaws.com'),
+    });
+    new ManagedPolicy(this, 'VpcFlowLogsPolicy', {
+      roles: [vpcFlowLogsRole],
+      statements: [
+        new PolicyStatement({
+          actions: [
+            'logs:CreateLogGroup',
+            'logs:CreateLogStream',
+            'logs:PutLogEvents',
+            'logs:DescribeLogGroups',
+            'logs:DescribeLogStreams',
+          ],
+          resources: ['*'],
+        })
+      ],
+    });
+
+    this.vpc.addFlowLog('VpcFlowLog', {
+      destination: FlowLogDestination.toCloudWatchLogs(
+        new LogGroup(this, 'VpcFlowLogGroup', {
+          retention: RetentionDays.ONE_MONTH,
+          removalPolicy: RemovalPolicy.DESTROY
+        }),
+        vpcFlowLogsRole
+      ),
     });
   }
 }

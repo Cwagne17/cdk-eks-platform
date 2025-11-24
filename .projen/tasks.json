@@ -216,7 +216,7 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@18 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/jest,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@aws-cdk/aws-eks-v2-alpha,@aws-cdk/lambda-layer-kubectl-v33,@aws-cdk/lambda-layer-kubectl-v34,cdk-nag"
+          "exec": "npx npm-check-updates@18 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@types/jest,@types/node,esbuild,eslint-import-resolver-typescript,eslint-plugin-import,jest,projen,ts-jest,ts-node,typescript,@aws-cdk/lambda-layer-kubectl-v33,@aws-cdk/lambda-layer-kubectl-v34,cdk-nag"
         },
         {
           "exec": "npm install"

@@ -72,6 +72,7 @@
     },
     {
       "name": "@aws-cdk/aws-eks-v2-alpha",
+      "version": "2.228.0-alpha.0",
       "type": "runtime"
     },
     {
