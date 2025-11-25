@@ -1,4 +1,5 @@
 import { Stack, StackProps } from 'aws-cdk-lib';
+import { AccountRecovery, UserPool } from 'aws-cdk-lib/aws-cognito';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { TaintEffect } from 'aws-cdk-lib/aws-eks';
 import { NagSuppressions } from 'cdk-nag';
@@ -41,6 +42,15 @@ export class ClusterStack extends Stack {
           }),
         }
       ],
+    });
+
+    new UserPool(this, "ArgoCDUserPool", {
+      userPoolName: "argocd-user-pool",
+      accountRecovery: AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+      passwordPolicy: {
+        minLength: 12,
+        passwordHistorySize: 24,
+      }
     });
 
     // Suppress NIST violations for Kubectl Provider Lambda functions (not under our control)

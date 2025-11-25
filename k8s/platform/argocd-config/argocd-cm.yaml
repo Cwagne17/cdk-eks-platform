@@ -12,8 +12,8 @@ data:
   # url: https://argocd.<your-domain>
 
   # Disable anonymous + built-in admin once SSO is verified
-  users.anonymous.enabled: "false"
-  admin.enabled: "false"
+  # users.anonymous.enabled: "false"
+  # admin.enabled: "false"
 
   # Your existing setting
   kustomize.buildOptions: --enable-helm
@@ -35,4 +35,9 @@ data:
   #   logoutURL: https://<your-cognito-domain>/logout
 
   # Add custom CSS
-  ui.cssurl: "./custom/custom-styles.css"
+  ui.cssurl: "./custom/styles.css"
+
+  ui.bannercontent: "UNCLASSIFIED"
+  ui.bannerurl: "" # no link needed, or could link to classification policy
+  ui.bannerpermanent: "true"
+  ui.bannerposition: "top" # show banner on top of UI

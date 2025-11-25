@@ -1,11 +1,135 @@
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: argocd-styles-cm
   namespace: argocd
 data:
-  custom-styles.css: |
+  style.css: |
+    /* --- Design Guide Custom Styles for Argo CD --- */
+
+    /* 1. Define color palette as CSS variables for reuse */
+    :root {
+      --black: #08262c;
+      --blue: #003b4f;
+      --teal-blue: #088199;
+      --gray: #c6ccd0;
+      --yellow: #e8b00f;
+      --white: #ffffff;
+      --alert-red: #b30003; /* for critical alerts, per guidance:contentReference[oaicite:20]{index=20} */
+    }
+
+    /* 2. Sidebar styling */
     .sidebar {
-      background: linear-gradient(to bottom, #999, #777, #333, #222, #111);
+      background-color: var(--blue); /* Blue sidebar background */
+      color: var(--white); /* White text for contrast */
+    }
+    .sidebar a,
+    .sidebar .menu-item {
+      color: var(--white) !important; /* Ensure sidebar links text is white */
+    }
+    .sidebar a:hover,
+    .sidebar .menu-item:hover {
+      background-color: var(--teal-blue); /* Teal Blue highlight on hover */
+    }
+    .sidebar__logo {
+      background-color: var(--blue); /* Logo section same as sidebar */
+      padding: 10px;
+    }
+    /* If a custom logo is desired, replace ArgoCD logo image */
+    .sidebar__logo img {
+      content: url("https://www.navy.mil/Portals/1/NavyLogo_System-2017-03.png?ver=QY3os1MxunHW925ijO5vlg%3D%3D"); /* example: inject logo */
+      width: 120px;
+      height: auto;
+    }
+
+    /* 3. Main content area */
+    .page__content-wrapper {
+      background-color: var(--white); /* White background for main panel */
+      color: var(--black); /* Black text for good contrast on white */
+    }
+    /* Card/panel background (if Argo uses panels inside content) */
+    .applications-list,
+    .application-details,
+    .panel {
+      background-color: var(--gray) !important; /* Light gray panel backgrounds */
+    }
+    /* Borders or dividers (if any) */
+    .separator,
+    hr {
+      border-color: var(--gray) !important;
+    }
+
+    /* 4. Typography: headings and body text */
+    .page__content-wrapper h1,
+    .page__content-wrapper h2,
+    .page__content-wrapper h3,
+    .page__content-wrapper h4,
+    .page__content-wrapper h5 {
+      font-family: "Roboto Slab", serif !important;
+      font-weight: 700 !important; /* bold for headings */
+      color: var(--black);
+    }
+    .page__content-wrapper p,
+    .page__content-wrapper span,
+    .page__content-wrapper td,
+    .page__content-wrapper li {
+      font-family: "Roboto", sans-serif !important;
+      font-weight: 400;
+      color: var(--black);
+    }
+    /* Smaller text (e.g., captions or labels) */
+    .small-text,
+    .form-text,
+    .help-block {
+      font-family: "Roboto", sans-serif;
+      font-size: 14px;
+      color: var(--black);
+    }
+
+    /* 5. Buttons and states */
+    button,
+    .btn {
+      background-color: var(--blue) !important;
+      color: var(--white) !important;
+      border-color: var(--blue) !important;
+    }
+    button:hover,
+    .btn:hover {
+      background-color: var(--teal-blue) !important;
+      border-color: var(--teal-blue) !important;
+    }
+    /* If Argo uses specific classes for primary vs secondary buttons, 
+      you can refine these selectors accordingly. */
+
+    /* 6. Alerts or status indicators */
+    .alert,
+    .notification-banner {
+      /* Example: use Yellow for warnings, Red for errors if applicable */
+    }
+    .alert-warning {
+      background-color: var(--yellow) !important;
+      color: var(--black) !important;
+    }
+    .alert-danger,
+    .alert-error {
+      background-color: var(--alert-red) !important;
+      color: var(--white) !important;
+    }
+
+    /* 7. Unclassified banner styling */
+    div[role="banner"],
+    .argo-banner {
+      background-color: #007a33 !important; /* "Unclassified" green per DoD spec:contentReference[oaicite:21]{index=21} */
+      color: #ffffff !important; /* white text on green */
+      text-align: center;
+      font-family: "Roboto", sans-serif;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 0;
+      border-bottom: 2px solid var(--gray);
+    }
+    /* If the banner text is a link (bannerurl set), ensure link looks same as text */
+    div[role="banner"] a {
+      color: #ffffff !important;
+      text-decoration: none;
     }
