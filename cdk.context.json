@@ -10,5 +10,6 @@
   "ami:account=008971673260:filters.image-type.0=machine:filters.name.0=amazon-eks-node-al2023-x86_64-standard-1.33*:filters.state.0=available:region=us-east-1": "ami-0806912c643175873",
   "acknowledged-issue-numbers": [
     34892
-  ]
+  ],
+  "ami:account=008971673260:filters.image-type.0=machine:filters.name.0=Windows_Server-2022-English-Core-EKS_Optimized-1.33*:filters.platform.0=windows:filters.state.0=available:region=us-east-1": "ami-0931f7ffc3ff614f6"
 }

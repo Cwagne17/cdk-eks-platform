@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: windows-gmsa
+  namespace: argocd
+  annotations:
+    # Depnds on cert-manager being installed first
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    repoURL: https://raw.githubusercontent.com/kubernetes-sigs/windows-gmsa/master/charts/repo
+    chart: gmsa
+    targetRevision: v0.13.0
+    helm:
+      releaseName: windows-gmsa
+      parameters:
+        - name: fullnameOverride
+          value: "windows-gmsa"
+        - name: nameOverride
+          value: "gmsa"
+        - name: certificates.certManager.version
+          value: "v1.18.2"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

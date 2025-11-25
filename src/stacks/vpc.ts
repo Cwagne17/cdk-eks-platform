@@ -2,6 +2,7 @@ import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { FlowLogDestination, IVpc, SubnetType, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export class VpcStack extends Stack {
@@ -54,14 +55,52 @@ export class VpcStack extends Stack {
       ],
     });
 
+    const flowLogGroup = new LogGroup(this, 'VpcFlowLogGroup', {
+      retention: RetentionDays.ONE_MONTH,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
     this.vpc.addFlowLog('VpcFlowLog', {
       destination: FlowLogDestination.toCloudWatchLogs(
-        new LogGroup(this, 'VpcFlowLogGroup', {
-          retention: RetentionDays.ONE_MONTH,
-          removalPolicy: RemovalPolicy.DESTROY
-        }),
+        flowLogGroup,
         vpcFlowLogsRole
       ),
     });
+
+    // Suppress NIST violations
+    // Accept default route to IGW because we need public subnets for this example
+    NagSuppressions.addResourceSuppressions(
+      this.vpc,
+      [
+        {
+          id: 'NIST.800.53.R5-VPCNoUnrestrictedRouteToIGW',
+          reason: 'Public subnets require default route to IGW for internet access in this example architecture',
+        },
+      ],
+      true, // applyToChildren
+    );
+
+    // Accept non-KMS encrypted CloudWatch log group for cost consideration
+    NagSuppressions.addResourceSuppressions(
+      flowLogGroup,
+      [
+        {
+          id: 'NIST.800.53.R5-CloudWatchLogGroupEncrypted',
+          reason: 'KMS encryption not required for VPC Flow Logs due to cost considerations',
+        },
+      ],
+    );
+
+    // Suppress inline policy warning for VPC Flow Logs role
+    NagSuppressions.addResourceSuppressions(
+      vpcFlowLogsRole,
+      [
+        {
+          id: 'NIST.800.53.R5-IAMNoInlinePolicy',
+          reason: 'Inline policy is automatically created by CDK for VPC Flow Logs role permissions',
+        },
+      ],
+      true, // applyToChildren
+    );
   }
 }

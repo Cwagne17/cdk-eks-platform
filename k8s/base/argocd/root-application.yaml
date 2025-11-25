@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: applications
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: argocd-bootstrap
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Cwagne17/cdk-eks-platform.git
+    targetRevision: main
+    path: k8s/base/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kyverno
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  sources:
+    # Kyverno Helm chart
+    - repoURL: https://kyverno.github.io/kyverno/
+      chart: kyverno
+      targetRevision: 3.5.2
+      helm:
+        values: |
+          webhookLabels:
+            app.kubernetes.io/managed-by: argocd
+    # Kyverno policies from this repo
+    - repoURL: https://github.com/Cwagne17/cdk-eks-platform.git
+      targetRevision: main
+      path: k8s/platform/kyverno/policies
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,18 @@
+# TODO: Add this ConfigMap to Kustomize overlays and update with your internal CA certs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-tls-certs-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  proxy.mycorp.internal: | # key = host:port Argo connects to
+    -----BEGIN CERTIFICATE-----
+    <your corporate root / issuing CA PEM>
+    -----END CERTIFICATE-----
+  git.mycorp.internal: |
+    -----BEGIN CERTIFICATE-----
+    <same or another CA PEM>
+    -----END CERTIFICATE-----
