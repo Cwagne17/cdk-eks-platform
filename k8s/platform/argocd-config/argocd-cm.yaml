@@ -33,11 +33,3 @@ data:
   #       essential: true
   #   # Optional: logout redirect
   #   logoutURL: https://<your-cognito-domain>/logout
-
-  # Add custom CSS
-  ui.cssurl: "./custom/styles.css"
-
-  ui.bannercontent: "UNCLASSIFIED"
-  ui.bannerurl: "" # no link needed, or could link to classification policy
-  ui.bannerpermanent: "true"
-  ui.bannerposition: "top" # show banner on top of UI

@@ -5,7 +5,5 @@ resources:
   # - argocd-server-cert.yaml
   # - argocd-ts-certs-cm.yaml
   # - argocd-ingress.yaml
-  - argocd-styles-cm.yaml
   - argocd-cm.yaml
-  - argocd-server.yaml
   # - argocd-rbac-cm.yaml
