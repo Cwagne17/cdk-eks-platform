@@ -24,7 +24,7 @@ const DEFAULT_DNS_CLUSTER_IP = '172.20.0.10';
  * @param version EKS version
  * @returns ILayerVersion or undefined
  */
-export function selectKubectlLayer(scope: Construct, version: KubernetesVersion): ILayerVersion | undefined {
+function selectKubectlLayer(scope: Construct, version: KubernetesVersion): ILayerVersion | undefined {
   switch (version.version) {
     case "1.33":
       return new KubectlV33Layer(scope, "kubectllayer33");
