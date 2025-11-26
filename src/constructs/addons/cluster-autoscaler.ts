@@ -1,7 +1,6 @@
-import { Cluster, HelmChart, Nodegroup } from "@aws-cdk/aws-eks-v2-alpha";
+import { Cluster, HelmChart, IdentityType, Nodegroup, ServiceAccount } from "@aws-cdk/aws-eks-v2-alpha";
 import { CfnJson, Duration, Names, Stack, Tags } from "aws-cdk-lib";
-import { CfnPodIdentityAssociation } from "aws-cdk-lib/aws-eks";
-import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { Effect, ManagedPolicy, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 
 const NAME = "cluster-autoscaler";
@@ -51,27 +50,33 @@ export class ClusterAutoscalerAddOn extends Construct {
         const helmChartVersion = props.version;
 
         // Create IAM role for the service account (IRSA/Pod Identity)
-        const role = new Role(this, 'ServiceAccountRole', {
-            assumedBy: new ServicePrincipal('pods.eks.amazonaws.com'),
-            roleName: `${props.cluster.clusterName}-${serviceAccountName}-role`,
+        // const role = new Role(this, 'ServiceAccountRole', {
+        //     assumedBy: new ServicePrincipal('pods.eks.amazonaws.com'),
+        //     roleName: `${props.cluster.clusterName}-${serviceAccountName}-role`,
+        // });
+        const serviceAccount = new ServiceAccount(this, 'ServiceAccount', {
+            cluster: props.cluster,
+            namespace,
+            name: serviceAccountName,
+            identityType: IdentityType.POD_IDENTITY
         });
 
         // Add the managed policy to the role
-        role.addManagedPolicy(ClusterAutoscalerIamPolicy(this, this.clusterName));
+        serviceAccount.role.addManagedPolicy(ClusterAutoscalerIamPolicy(this, this.clusterName));
 
         // Create Pod Identity Association to bind the IAM role to the ServiceAccount
-        const podIdentity = new CfnPodIdentityAssociation(this, `${namespace}-${serviceAccountName}PodIdentity`, {
-            clusterName: props.cluster.clusterName,
-            namespace,
-            serviceAccount: serviceAccountName,
-            roleArn: role.roleArn,
-            tags: [
-                {
-                    key: 'Name',
-                    value: `${namespace}-${serviceAccountName}-pod-identity`,
-                },
-            ],
-        });
+        // const podIdentity = new CfnPodIdentityAssociation(this, `${namespace}-${serviceAccountName}PodIdentity`, {
+        //     clusterName: props.cluster.clusterName,
+        //     namespace,
+        //     serviceAccount: serviceAccountName,
+        //     roleArn: role.roleArn,
+        //     tags: [
+        //         {
+        //             key: 'Name',
+        //             value: `${namespace}-${serviceAccountName}-pod-identity`,
+        //         },
+        //     ],
+        // });
 
         const chart = new HelmChart(this, 'Resource', {
             cluster: props.cluster,
@@ -90,7 +95,7 @@ export class ClusterAutoscalerAddOn extends Construct {
                 },
                 rbac: {
                     serviceAccount: {
-                        create: true,
+                        create: false,
                         name: serviceAccountName,
                     }
                 },
@@ -105,7 +110,7 @@ export class ClusterAutoscalerAddOn extends Construct {
 
         // Ensure pod identity association is created before Helm chart
         // This ensures the ServiceAccount can assume the IAM role when pods start
-        chart.node.addDependency(podIdentity);
+        // chart.node.addDependency(podIdentity);
     }
 
     /**
